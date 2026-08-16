@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 [DisallowMultipleComponent]
@@ -14,6 +15,7 @@ public sealed class StaircaseFloor : MonoBehaviour
     private static readonly HashSet<int> ShownDialogues = new();
     private static bool hasOrigin;
     private static float originHeight;
+    private static TMP_Text debugText;
 
     private int floorIndex;
 
@@ -25,6 +27,7 @@ public sealed class StaircaseFloor : MonoBehaviour
         ShownDialogues.Clear();
         hasOrigin = false;
         originHeight = 0f;
+        debugText = null;
     }
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
@@ -65,6 +68,7 @@ public sealed class StaircaseFloor : MonoBehaviour
         if (floorIndex == 0)
         {
             yield return StageSheetLoader.WaitUntilReady();
+            UpdateDebugUI();
             if (ReplaceOriginFloorIfNeeded())
             {
                 yield break;
@@ -84,6 +88,7 @@ public sealed class StaircaseFloor : MonoBehaviour
 
     public void AreaReached(Checker.Area area)
     {
+        UpdateDebugUI();
         TryShowDialogue(area);
 
         switch (area)
@@ -94,6 +99,31 @@ public sealed class StaircaseFloor : MonoBehaviour
                 RemoveDistantFloors(floorIndex);
                 break;
         }
+    }
+
+    private void UpdateDebugUI()
+    {
+        if (debugText == null)
+        {
+            foreach (TMP_Text text in FindObjectsByType<TMP_Text>(
+                         FindObjectsInactive.Include,
+                         FindObjectsSortMode.None))
+            {
+                if (text.name == "Debug")
+                {
+                    debugText = text;
+                    break;
+                }
+            }
+        }
+
+        if (debugText == null)
+        {
+            return;
+        }
+
+        int stageNumber = Mathf.Max(1, 1 - floorIndex);
+        debugText.text = $"현재 층 : {stageNumber}\n현재 층 타입 : {StageSheetLoader.GetStageType(stageNumber)}";
     }
 
     private void TryShowDialogue(Checker.Area area)
