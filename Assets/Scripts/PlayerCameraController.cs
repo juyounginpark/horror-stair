@@ -74,7 +74,10 @@ public sealed class PlayerCameraController : MonoBehaviour
         {
             Vector2 mouseDelta = mouse.delta.ReadValue();
             yaw += mouseDelta.x * mouseSensitivity;
-            pitch = Mathf.Clamp(pitch - mouseDelta.y * mouseSensitivity, minimumPitch, maximumPitch);
+            pitch = Mathf.Clamp(
+                pitch - mouseDelta.y * mouseSensitivity,
+                minimumPitch,
+                maximumPitch);
         }
 
         float scroll = mouse.scroll.ReadValue().y;

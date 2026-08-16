@@ -47,8 +47,17 @@ public sealed class PlayerController : MonoBehaviour
     {
         body = GetComponent<Rigidbody>();
         capsuleCollider = GetComponent<CapsuleCollider>();
+        CharacterController legacyController = GetComponent<CharacterController>();
+        if (legacyController != null)
+        {
+            legacyController.enabled = false;
+        }
+
+        capsuleCollider.enabled = true;
         body.useGravity = true;
-        body.constraints |= RigidbodyConstraints.FreezeRotation;
+        body.isKinematic = false;
+        body.constraints = RigidbodyConstraints.FreezeRotationX
+            | RigidbodyConstraints.FreezeRotationZ;
         body.interpolation = RigidbodyInterpolation.Interpolate;
         currentStamina = maximumStamina;
 
@@ -105,8 +114,10 @@ public sealed class PlayerController : MonoBehaviour
         }
 
         moveInput = new Vector2(
-            ReadAxis(keyboard.aKey.isPressed, keyboard.dKey.isPressed),
-            ReadAxis(keyboard.sKey.isPressed, keyboard.wKey.isPressed));
+            ReadAxis(keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed,
+                keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed),
+            ReadAxis(keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed,
+                keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed));
         moveInput = Vector2.ClampMagnitude(moveInput, 1f);
 
         bool shiftHeld = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
@@ -143,7 +154,6 @@ public sealed class PlayerController : MonoBehaviour
         if (jumpRequested && IsGrounded)
         {
             velocity.y = jumpForce;
-            lastGroundedTime = float.NegativeInfinity;
         }
 
         body.linearVelocity = velocity;
