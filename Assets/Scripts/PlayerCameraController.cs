@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [DisallowMultipleComponent]
 public sealed class PlayerCameraController : MonoBehaviour
@@ -51,36 +50,27 @@ public sealed class PlayerCameraController : MonoBehaviour
 
     private void Update()
     {
-        Mouse mouse = Mouse.current;
-        Keyboard keyboard = Keyboard.current;
-
-        if (keyboard != null && keyboard.escapeKey.wasPressedThisFrame)
+        if (Input.GetKeyDown(KeyCode.Escape))
         {
             Cursor.lockState = CursorLockMode.None;
             Cursor.visible = true;
         }
 
-        if (mouse == null)
-        {
-            return;
-        }
-
-        if (mouse.leftButton.wasPressedThisFrame && Cursor.lockState != CursorLockMode.Locked)
+        if (Input.GetMouseButtonDown(0) && Cursor.lockState != CursorLockMode.Locked)
         {
             LockCursor();
         }
 
         if (Cursor.lockState == CursorLockMode.Locked)
         {
-            Vector2 mouseDelta = mouse.delta.ReadValue();
-            yaw += mouseDelta.x * mouseSensitivity;
+            yaw += Input.GetAxis("Mouse X") * mouseSensitivity * 10f;
             pitch = Mathf.Clamp(
-                pitch - mouseDelta.y * mouseSensitivity,
+                pitch - Input.GetAxis("Mouse Y") * mouseSensitivity * 10f,
                 minimumPitch,
                 maximumPitch);
         }
 
-        float scroll = mouse.scroll.ReadValue().y;
+        float scroll = Input.mouseScrollDelta.y;
         if (scroll > 0f)
         {
             targetDistance = firstPersonDistance;

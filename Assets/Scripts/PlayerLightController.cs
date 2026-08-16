@@ -57,7 +57,18 @@ public sealed class PlayerLightController : MonoBehaviour
 
     private void ToggleLight()
     {
-        isLightOn = !isLightOn;
+        SetLight(!isLightOn);
+    }
+
+    public void SetLight(bool lightOn)
+    {
+        if (isLightOn == lightOn)
+        {
+            playerLight.enabled = lightOn;
+            return;
+        }
+
+        isLightOn = lightOn;
 
         if (flickerRoutine != null)
         {

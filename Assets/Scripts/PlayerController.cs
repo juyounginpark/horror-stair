@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
@@ -32,9 +31,13 @@ public sealed class PlayerController : MonoBehaviour
     private bool isSprinting;
     private float currentStamina;
     private float lastGroundedTime = float.NegativeInfinity;
+    private static bool hasStartPose;
+    private static Vector3 startPosition;
+    private static Quaternion startRotation;
 
     public bool IsGrounded => Time.time - lastGroundedTime <= groundedGraceTime;
     public bool IsSprinting => isSprinting;
+    public bool HasMovementInput => moveInput.sqrMagnitude > 0.0001f || jumpRequested;
     public float StaminaRatio => maximumStamina <= 0f
         ? 0f
         : currentStamina / maximumStamina;
@@ -42,6 +45,12 @@ public sealed class PlayerController : MonoBehaviour
     public float HorizontalSpeed => body == null
         ? 0f
         : new Vector2(body.linearVelocity.x, body.linearVelocity.z).magnitude;
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStartPose()
+    {
+        hasStartPose = false;
+    }
 
     private void Awake()
     {
@@ -55,11 +64,28 @@ public sealed class PlayerController : MonoBehaviour
 
         capsuleCollider.enabled = true;
         body.useGravity = true;
+        Vector3 spawnPosition = transform.position;
+        Quaternion spawnRotation = transform.rotation;
+        body.isKinematic = true;
+        body.position = spawnPosition;
+        body.rotation = spawnRotation;
         body.isKinematic = false;
-        body.constraints = RigidbodyConstraints.FreezeRotationX
-            | RigidbodyConstraints.FreezeRotationZ;
+        body.detectCollisions = true;
+        body.constraints = RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
+        body.collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+        body.maxLinearVelocity = 50f;
+        body.maxAngularVelocity = 50f;
         body.interpolation = RigidbodyInterpolation.Interpolate;
+        Physics.SyncTransforms();
+        body.WakeUp();
         currentStamina = maximumStamina;
+
+        if (!hasStartPose)
+        {
+            startPosition = transform.position;
+            startRotation = transform.rotation;
+            hasStartPose = true;
+        }
 
         noFrictionMaterial = new PhysicsMaterial("Player No Friction")
         {
@@ -105,25 +131,15 @@ public sealed class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        Keyboard keyboard = Keyboard.current;
-        if (keyboard == null)
-        {
-            moveInput = Vector2.zero;
-            UpdateStamina(false);
-            return;
-        }
-
         moveInput = new Vector2(
-            ReadAxis(keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed,
-                keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed),
-            ReadAxis(keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed,
-                keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed));
+            Input.GetAxisRaw("Horizontal"),
+            Input.GetAxisRaw("Vertical"));
         moveInput = Vector2.ClampMagnitude(moveInput, 1f);
 
-        bool shiftHeld = keyboard.leftShiftKey.isPressed || keyboard.rightShiftKey.isPressed;
+        bool shiftHeld = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
         UpdateStamina(shiftHeld);
 
-        if (keyboard.spaceKey.wasPressedThisFrame)
+        if (Input.GetButtonDown("Jump"))
         {
             jumpRequested = true;
         }
@@ -172,9 +188,13 @@ public sealed class PlayerController : MonoBehaviour
         }
     }
 
-    private static float ReadAxis(bool negativePressed, bool positivePressed)
+    public void ReturnToStart()
     {
-        return (positivePressed ? 1f : 0f) - (negativePressed ? 1f : 0f);
+        body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
+        body.position = startPosition;
+        body.rotation = startRotation;
+        transform.SetPositionAndRotation(startPosition, startRotation);
     }
 
     private void UpdateStamina(bool shiftHeld)
