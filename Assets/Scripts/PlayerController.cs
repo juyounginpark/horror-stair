@@ -32,9 +32,13 @@ public sealed class PlayerController : MonoBehaviour
     private bool isSprinting;
     private float currentStamina;
     private float lastGroundedTime = float.NegativeInfinity;
+    private static bool hasStartPose;
+    private static Vector3 startPosition;
+    private static Quaternion startRotation;
 
     public bool IsGrounded => Time.time - lastGroundedTime <= groundedGraceTime;
     public bool IsSprinting => isSprinting;
+    public bool HasMovementInput => moveInput.sqrMagnitude > 0.0001f || jumpRequested;
     public float StaminaRatio => maximumStamina <= 0f
         ? 0f
         : currentStamina / maximumStamina;
@@ -43,14 +47,32 @@ public sealed class PlayerController : MonoBehaviour
         ? 0f
         : new Vector2(body.linearVelocity.x, body.linearVelocity.z).magnitude;
 
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStartPose()
+    {
+        hasStartPose = false;
+    }
+
     private void Awake()
     {
         body = GetComponent<Rigidbody>();
         capsuleCollider = GetComponent<CapsuleCollider>();
         body.useGravity = true;
-        body.constraints |= RigidbodyConstraints.FreezeRotation;
+        body.constraints = (body.constraints
+            | RigidbodyConstraints.FreezeRotationX
+            | RigidbodyConstraints.FreezeRotationZ)
+            & ~RigidbodyConstraints.FreezeRotationY;
+        body.maxLinearVelocity = 50f;
+        body.maxAngularVelocity = 50f;
         body.interpolation = RigidbodyInterpolation.Interpolate;
         currentStamina = maximumStamina;
+
+        if (!hasStartPose)
+        {
+            startPosition = transform.position;
+            startRotation = transform.rotation;
+            hasStartPose = true;
+        }
 
         noFrictionMaterial = new PhysicsMaterial("Player No Friction")
         {
@@ -165,6 +187,15 @@ public sealed class PlayerController : MonoBehaviour
     private static float ReadAxis(bool negativePressed, bool positivePressed)
     {
         return (positivePressed ? 1f : 0f) - (negativePressed ? 1f : 0f);
+    }
+
+    public void ReturnToStart()
+    {
+        body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
+        body.position = startPosition;
+        body.rotation = startRotation;
+        transform.SetPositionAndRotation(startPosition, startRotation);
     }
 
     private void UpdateStamina(bool shiftHeld)
