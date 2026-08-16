@@ -38,6 +38,7 @@ public sealed class PlayerController : MonoBehaviour
 
     public bool IsGrounded => Time.time - lastGroundedTime <= groundedGraceTime;
     public bool IsSprinting => isSprinting;
+    public bool HasMovementInput => moveInput.sqrMagnitude > 0.0001f || jumpRequested;
     public float StaminaRatio => maximumStamina <= 0f
         ? 0f
         : currentStamina / maximumStamina;
