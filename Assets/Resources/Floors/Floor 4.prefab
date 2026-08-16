@@ -87,6 +87,8 @@ MonoBehaviour:
   soundVolume: 0.8
   soundMinDistance: 1.5
   soundMaxDistance: 45
+  entrySound: {fileID: 0}
+  entrySoundVolume: 1
 --- !u!1001 &1658813256479390106
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -171,7 +173,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 993693070042206219, guid: 2b5c0dca52b02bf49b1c91308a5f3b19, type: 3}
       propertyPath: m_Name
-      value: Floor 3
+      value: Floor 4
       objectReference: {fileID: 0}
     - target: {fileID: 3777461997190986102, guid: 2b5c0dca52b02bf49b1c91308a5f3b19, type: 3}
       propertyPath: m_LocalPosition.x

@@ -30,11 +30,16 @@ public sealed class MonsterWatcherEncounter : MonoBehaviour
     [SerializeField, Min(0.1f)] private float surfaceSearchHeight = 4f;
     [SerializeField, Min(0.1f)] private float surfaceSearchDistance = 10f;
 
+    [Header("Entry Sound")]
+    [SerializeField] private AudioClip entrySound;
+    [SerializeField, Range(0f, 1f)] private float entrySoundVolume = 1f;
+
     private PlayerController player;
     private PlayerLightController lightController;
     private Camera playerCamera;
     private Transform viewTransform;
     private GameObject monsterInstance;
+    private MonsterProceduralAnimator monsterAnimator;
     private Renderer[] monsterRenderers;
     private readonly Plane[] frustumPlanes = new Plane[6];
     private readonly List<Vector3> exitPath = new();
@@ -130,6 +135,9 @@ public sealed class MonsterWatcherEncounter : MonoBehaviour
             return;
         }
 
+        if (entrySound != null)
+            AudioSource.PlayClipAtPoint(entrySound, target.transform.position, entrySoundVolume);
+
         player = target;
         playerCamera = target.GetComponentInChildren<Camera>(true);
         viewTransform = playerCamera != null ? playerCamera.transform : target.transform;
@@ -192,6 +200,9 @@ public sealed class MonsterWatcherEncounter : MonoBehaviour
         foreach (Collider monsterCollider in monsterInstance.GetComponentsInChildren<Collider>())
             monsterCollider.enabled = false;
 
+        if (monsterAnimator != null)
+            monsterAnimator.SetRunning(true);
+
         pathIndex = 0;
         stateTime = 0f;
         state = EncounterState.Leaving;
@@ -200,8 +211,12 @@ public sealed class MonsterWatcherEncounter : MonoBehaviour
     private void SpawnMonster(Vector3 position)
     {
         monsterInstance = Instantiate(monsterPrefab, position, Quaternion.identity, transform);
-        monsterInstance.name = "Monster Silhouette";
+        monsterInstance.name = "Character Monster 03";
         monsterRenderers = monsterInstance.GetComponentsInChildren<Renderer>();
+        monsterAnimator = monsterInstance.GetComponentInChildren<MonsterProceduralAnimator>(true);
+        if (monsterAnimator != null)
+            monsterAnimator.SetRunning(false);
+
         MonsterContactTrigger contact = monsterInstance.GetComponent<MonsterContactTrigger>();
         if (contact != null)
             contact.Configure(this);
@@ -239,6 +254,7 @@ public sealed class MonsterWatcherEncounter : MonoBehaviour
 
         monsterInstance = null;
         monsterRenderers = null;
+        monsterAnimator = null;
     }
 
     private void UnsubscribeFromLight()

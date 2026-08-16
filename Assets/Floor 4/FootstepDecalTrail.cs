@@ -33,6 +33,10 @@ public sealed class FootstepDecalTrail : MonoBehaviour
     [SerializeField, Min(0.1f)] private float soundMinDistance = 1.5f;
     [SerializeField, Min(0.1f)] private float soundMaxDistance = 45f;
 
+    [Header("Entry Sound")]
+    [SerializeField] private AudioClip entrySound;
+    [SerializeField, Range(0f, 1f)] private float entrySoundVolume = 1f;
+
     private readonly List<Vector3> path = new();
     private AudioClip fallbackSound;
     private Transform spawnedRoot;
@@ -107,6 +111,9 @@ public sealed class FootstepDecalTrail : MonoBehaviour
 
         if (!BuildFloorPath())
             return;
+
+        if (entrySound != null)
+            AudioSource.PlayClipAtPoint(entrySound, target.transform.position, entrySoundVolume);
 
         player = target;
         activationHeight = target.transform.position.y;
