@@ -17,6 +17,8 @@ public sealed class FootstepDecalTrail : MonoBehaviour
     [SerializeField, Min(0f)] private float sideOffset = 0.16f;
 
     [Header("Catch Trigger")]
+    [SerializeField] private GameObject jumpscareMonsterPrefab;
+    [SerializeField] private JumpscareAnchor jumpscarePlayerAnchor;
     [SerializeField, Min(0.1f)] private float catchTriggerWidth = 6f;
     [SerializeField, Min(0.1f)] private float catchTriggerHeight = 3f;
     [SerializeField, Min(0.1f)] private float catchTriggerDepth = 1.8f;
@@ -32,6 +34,10 @@ public sealed class FootstepDecalTrail : MonoBehaviour
     [SerializeField, Range(0f, 1f)] private float soundVolume = 0.8f;
     [SerializeField, Min(0.1f)] private float soundMinDistance = 1.5f;
     [SerializeField, Min(0.1f)] private float soundMaxDistance = 45f;
+
+    [Header("Entry Sound")]
+    [SerializeField] private AudioClip entrySound;
+    [SerializeField, Range(0f, 1f)] private float entrySoundVolume = 1f;
 
     private readonly List<Vector3> path = new();
     private AudioClip fallbackSound;
@@ -108,6 +114,9 @@ public sealed class FootstepDecalTrail : MonoBehaviour
         if (!BuildFloorPath())
             return;
 
+        if (entrySound != null)
+            AudioSource.PlayClipAtPoint(entrySound, target.transform.position, entrySoundVolume);
+
         player = target;
         activationHeight = target.transform.position.y;
         delayRemaining = startDelay;
@@ -128,7 +137,23 @@ public sealed class FootstepDecalTrail : MonoBehaviour
         if (!active || caughtPlayer != player)
             return;
 
-        caughtPlayer.ReturnToStart();
+        if (jumpscareMonsterPrefab != null)
+        {
+            GameObject monster = Instantiate(
+                jumpscareMonsterPrefab,
+                caughtPlayer.transform.position,
+                Quaternion.identity,
+                transform);
+            MonsterJumpscare jumpscare = monster.GetComponent<MonsterJumpscare>();
+            if (jumpscare == null)
+                jumpscare = monster.AddComponent<MonsterJumpscare>();
+            jumpscare.Play(caughtPlayer, jumpscarePlayerAnchor);
+        }
+        else
+        {
+            caughtPlayer.ReturnToStart();
+        }
+
         StopChase();
     }
 

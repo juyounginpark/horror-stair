@@ -15,7 +15,7 @@ public sealed class MonsterContactTrigger : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         PlayerController player = other.GetComponentInParent<PlayerController>();
-        if (player != null)
+        if (player != null && owner != null)
             owner.Catch(player);
     }
 }
