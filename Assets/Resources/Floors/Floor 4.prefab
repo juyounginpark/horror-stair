@@ -2114,6 +2114,8 @@ MonoBehaviour:
   floorEndOffset: 4
   floorEndHeightOffset: 2
   sideOffset: 0.16
+  jumpscareMonsterPrefab: {fileID: 8544841768588419023, guid: 9711f3a641e10014bb662f4048a473c7, type: 3}
+  jumpscarePlayerAnchor: {fileID: 0}
   catchTriggerWidth: 6
   catchTriggerHeight: 3
   catchTriggerDepth: 1.8

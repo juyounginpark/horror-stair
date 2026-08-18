@@ -147,6 +147,11 @@ public sealed class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (body == null || body.isKinematic)
+        {
+            return;
+        }
+
         bool wantsToMove = moveInput.sqrMagnitude > 0.0001f;
         bool isJumping = jumpRequested && IsGrounded;
         capsuleCollider.material = IsGrounded && !wantsToMove && !isJumping
@@ -195,6 +200,28 @@ public sealed class PlayerController : MonoBehaviour
         body.position = startPosition;
         body.rotation = startRotation;
         transform.SetPositionAndRotation(startPosition, startRotation);
+    }
+
+    public void TeleportTo(Vector3 position, Quaternion rotation)
+    {
+        if (body != null)
+        {
+            if (!body.isKinematic)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
+            body.position = position;
+            body.rotation = rotation;
+        }
+        transform.SetPositionAndRotation(position, rotation);
+    }
+
+    public void TeleportTo(Transform target)
+    {
+        if (target == null)
+            return;
+        TeleportTo(target.position, target.rotation);
     }
 
     private void UpdateStamina(bool shiftHeld)

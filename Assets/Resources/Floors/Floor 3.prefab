@@ -67,6 +67,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MonsterWatcherEncounter
   monsterPrefab: {fileID: 8544841768588419023, guid: 9711f3a641e10014bb662f4048a473c7, type: 3}
+  jumpscarePlayerAnchor: {fileID: 0}
   exitSpeed: 8
   frontSpawnDistance: 2.2
   lookTargetOffset: {x: 0, y: 1.3, z: 0}

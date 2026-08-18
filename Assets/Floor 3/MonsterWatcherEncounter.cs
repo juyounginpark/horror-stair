@@ -15,6 +15,7 @@ public sealed class MonsterWatcherEncounter : MonoBehaviour
 
     [Header("Monster")]
     [SerializeField] private GameObject monsterPrefab;
+    [SerializeField] private JumpscareAnchor jumpscarePlayerAnchor;
     [SerializeField, Min(0.1f)] private float exitSpeed = 8f;
     [SerializeField, Min(0.5f)] private float frontSpawnDistance = 2.2f;
     [SerializeField] private Vector3 lookTargetOffset = new(0f, 1.3f, 0f);
@@ -155,12 +156,16 @@ public sealed class MonsterWatcherEncounter : MonoBehaviour
         if (!active || caughtPlayer != player)
             return;
 
-        MonsterJumpscare gameOver = monsterInstance != null
-            ? monsterInstance.GetComponent<MonsterJumpscare>()
+        GameObject caughtBy = monsterInstance;
+        MonsterJumpscare gameOver = caughtBy != null
+            ? caughtBy.GetComponent<MonsterJumpscare>()
             : null;
 
         if (gameOver != null)
-            gameOver.Play(caughtPlayer);
+        {
+            monsterInstance = null;
+            gameOver.Play(caughtPlayer, jumpscarePlayerAnchor);
+        }
         else
             caughtPlayer.ReturnToStart();
 
@@ -273,7 +278,7 @@ public sealed class MonsterWatcherEncounter : MonoBehaviour
                 groundLayers,
                 QueryTriggerInteraction.Ignore))
         {
-            position = hit.point;
+            position.y = hit.point.y;
         }
 
         return position;

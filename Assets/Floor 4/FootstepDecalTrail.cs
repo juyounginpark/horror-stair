@@ -17,6 +17,8 @@ public sealed class FootstepDecalTrail : MonoBehaviour
     [SerializeField, Min(0f)] private float sideOffset = 0.16f;
 
     [Header("Catch Trigger")]
+    [SerializeField] private GameObject jumpscareMonsterPrefab;
+    [SerializeField] private JumpscareAnchor jumpscarePlayerAnchor;
     [SerializeField, Min(0.1f)] private float catchTriggerWidth = 6f;
     [SerializeField, Min(0.1f)] private float catchTriggerHeight = 3f;
     [SerializeField, Min(0.1f)] private float catchTriggerDepth = 1.8f;
@@ -135,7 +137,23 @@ public sealed class FootstepDecalTrail : MonoBehaviour
         if (!active || caughtPlayer != player)
             return;
 
-        caughtPlayer.ReturnToStart();
+        if (jumpscareMonsterPrefab != null)
+        {
+            GameObject monster = Instantiate(
+                jumpscareMonsterPrefab,
+                caughtPlayer.transform.position,
+                Quaternion.identity,
+                transform);
+            MonsterJumpscare jumpscare = monster.GetComponent<MonsterJumpscare>();
+            if (jumpscare == null)
+                jumpscare = monster.AddComponent<MonsterJumpscare>();
+            jumpscare.Play(caughtPlayer, jumpscarePlayerAnchor);
+        }
+        else
+        {
+            caughtPlayer.ReturnToStart();
+        }
+
         StopChase();
     }
 
